@@ -1,0 +1,49 @@
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: kube-controller-manager-network-chaos
+spec:
+  # It can be delete/retain
+  jobCleanUpPolicy: 'delete'
+  # It can be true/false
+  annotationCheck: 'false'
+  # It can be active/stop
+  engineState: 'active'
+  appinfo:
+    appns: 'openshift-kube-controller-manager'
+    # FYI, To see app label, apply kubectl get pods --show-labels
+    applabel: 'app=kube-controller-manager'
+    appkind: ''
+  chaosServiceAccount: pod-network-loss-sa
+  experiments:
+    - name: pod-network-loss
+      spec:
+        components:
+          env:
+            #Network interface inside target container
+            # eth0 enp1s0 ens4
+            - name: NETWORK_INTERFACE
+              value: 'eth0'
+
+            - name: TARGET_CONTAINER
+              value: 'kube-controller-manager'
+
+            - name: TARGET_PODS
+              value: 'kube-controller-manager-ci-ln-wqrhnfb-002ac-7fgvt-master-2'
+
+            - name: NETWORK_PACKET_LOSS_PERCENTAGE
+              value: '50'
+
+            - name: TOTAL_CHAOS_DURATION
+              value: '20' # in seconds
+
+            # provide the name of container runtime
+            # for litmus LIB, it supports docker, containerd, crio
+            # for pumba LIB, it supports docker only
+            - name: CONTAINER_RUNTIME
+              value: 'crio'
+
+            # provide the socket file path
+            - name: SOCKET_PATH
+              value: '/run/crio/crio.sock'
