@@ -1,0 +1,34 @@
+#!/usr/bin/expect
+
+set node_name [lindex $argv 0]
+set prompt "sh-4.4#"
+set prompt2 "sh-4.4#"
+set prompt3 "\[root@$node_name"
+
+set response_delay 2
+set timeout 60
+set send_human {.1 .3 1 .05 2}
+
+
+
+spawn oc debug node/$node_name
+
+expect $prompt {
+    sleep $response_delay
+    
+    send -h "chroot /host\n"
+    expect $prompt2 {
+        sleep $response_delay
+        
+        send -h "sudo su -\n"
+        expect $prompt3 {
+            sleep $response_delay
+                
+            send -h "modprobe sch_netem\n"
+        }
+    }
+}
+
+set timeout 5
+expect success
+
